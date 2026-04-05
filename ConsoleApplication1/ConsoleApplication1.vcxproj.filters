@@ -24,4 +24,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Downloads\Copy of SFML Template.rar" />
+  </ItemGroup>
 </Project>
