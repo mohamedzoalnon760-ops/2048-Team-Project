@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-
+#include"GameData.h"
 int main() {
     sf::RenderWindow window(sf::VideoMode(600, 600), "SFML Green Circle");
 
