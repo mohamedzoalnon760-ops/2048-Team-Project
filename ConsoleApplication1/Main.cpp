@@ -51,6 +51,62 @@ void moveDown(GameData& game) {
     std::cout << "Action: Move Down" << std::endl;
 }
 
+void moveLeft(Gamedata& game)
+{
+    for (int i = 0; i < 4; i++) {
+
+        for (int j = 1; j < 4; j++) {
+
+            if (game.board[i][j] != 0) {
+
+                int k = j;
+
+                while (k > 0 && game.board[i][k + 1] == 0)
+                {
+                    game.board[i][k - 1] = game.board[i][k];
+                    game.board[i][k] = 0;
+                    k--;
+                }
+                //merge
+                if (k > 0 && game.board[1][k - 1] == game.board[i][k])
+                {
+                    game.board[1][k - 1] *= 2;
+                    game.score += game.board[i][k - 1];
+                    game.board[i][k] = 0;
+                }
+            } 
+        }
+    }
+}
+
+void moveRight(GameData& game)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 2; j >= 0; j--)
+        {
+            if (game.board[i][j] != 0)
+            {
+
+                int k = j;
+
+                while (k < 3 && game.board[i][k + 1] == 0)
+                {
+                    game.board[i][k + 1] = game.board[i][k];
+                    game.board[i][k] = 0;
+                    k++;
+                }
+                // merge again but right
+                if (k < 3 && game.board[i][k + 1] == game.board[i][k])
+                {
+                    game.board[i][k + 1] *= 2;
+                    game.score += game.board[i][k + ];
+                    gane.board[i][k] = 0;
+                }
+            }
+        }
+    }
+}
 int main() {
     // Creating the window
     sf::RenderWindow window(sf::VideoMode(600, 600), "2048 Game - Team Project");
