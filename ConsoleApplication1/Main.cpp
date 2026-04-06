@@ -67,7 +67,7 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            // Handling arrow keys
+            // arrow keys
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Up) {
                     moveUp(myGame);
