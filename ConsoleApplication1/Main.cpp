@@ -48,33 +48,50 @@ void moveDown(GameData& game) {
             }
         }
     }
-    std::cout << "Action: Move Down" << std::endl;
+    std ::cout << "Action: Move Down" << std::endl;
 }
-
-void moveLeft(Gamedata& game)
+void moveLeft(GameData& game)
 {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
+        int temp[4] = { 0 };
+        int index = 0;
 
-        for (int j = 1; j < 4; j++) {
+        // 1. ضغط (تشيل الأصفار)
+        for (int j = 0; j < 4; j++)
+        {
+            if (game.board[i][j] != 0)
+            {
+                temp[index++] = game.board[i][j];
+            }
+        }
 
-            if (game.board[i][j] != 0) {
+        // 2. دمج
+        for (int j = 0; j < 3; j++)
+        {
+            if (temp[j] != 0 && temp[j] == temp[j + 1])
+            {
+                temp[j] *= 2;
+                game.score += temp[j];
+                temp[j + 1] = 0;
+            }
+        }
 
-                int k = j;
+        // 3. ضغط تاني
+        int newRow[4] = { 0 };
+        index = 0;
+        for (int j = 0; j < 4; j++)
+        {
+            if (temp[j] != 0)
+            {
+                newRow[index++] = temp[j];
+            }
+        }
 
-                while (k > 0 && game.board[i][k + 1] == 0)
-                {
-                    game.board[i][k - 1] = game.board[i][k];
-                    game.board[i][k] = 0;
-                    k--;
-                }
-                //merge
-                if (k > 0 && game.board[1][k - 1] == game.board[i][k])
-                {
-                    game.board[1][k - 1] *= 2;
-                    game.score += game.board[i][k - 1];
-                    game.board[i][k] = 0;
-                }
-            } 
+        // 4. رجوع للبورد
+        for (int j = 0; j < 4; j++)
+        {
+            game.board[i][j] = newRow[j];
         }
     }
 }
@@ -83,27 +100,44 @@ void moveRight(GameData& game)
 {
     for (int i = 0; i < 4; i++)
     {
-        for (int j = 2; j >= 0; j--)
+        int temp[4] = { 0 };
+        int index = 3;
+
+        // 1. ضغط من اليمين
+        for (int j = 3; j >= 0; j--)
         {
             if (game.board[i][j] != 0)
             {
-
-                int k = j;
-
-                while (k < 3 && game.board[i][k + 1] == 0)
-                {
-                    game.board[i][k + 1] = game.board[i][k];
-                    game.board[i][k] = 0;
-                    k++;
-                }
-                // merge again but right
-                if (k < 3 && game.board[i][k + 1] == game.board[i][k])
-                {
-                    game.board[i][k + 1] *= 2;
-                    game.score += game.board[i][k + ];
-                    gane.board[i][k] = 0;
-                }
+                temp[index--] = game.board[i][j];
             }
+        }
+
+        // 2. دمج
+        for (int j = 3; j > 0; j--)
+        {
+            if (temp[j] != 0 && temp[j] == temp[j - 1])
+            {
+                temp[j] *= 2;
+                game.score += temp[j];
+                temp[j - 1] = 0;
+            }
+        }
+
+        // 3. ضغط تاني
+        int newRow[4] = { 0 };
+        index = 3;
+        for (int j = 3; j >= 0; j--)
+        {
+            if (temp[j] != 0)
+            {
+                newRow[index--] = temp[j];
+            }
+        }
+
+        // 4. رجوع للبورد
+        for (int j = 0; j < 4; j++)
+        {
+            game.board[i][j] = newRow[j];
         }
     }
 }
@@ -130,6 +164,12 @@ int main() {
                 }
                 else if (event.key.code == sf::Keyboard::Down) {
                     moveDown(myGame);
+                }
+                else if (event.key.code == sf::Keyboard::Left) {
+                    moveLeft(myGame);
+                }
+                else if (event.key.code == sf::Keyboard::Right) {
+                    moveRight(myGame);
                 }
             }
         }
