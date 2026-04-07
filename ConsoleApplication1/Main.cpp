@@ -1,11 +1,38 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <cstdlib> 
+#include <ctime>   
 
 // Struct to hold game data
 struct GameData {
     int board[4][4] = { 0 };
     int score = 0;
 };
+
+// --- [New Part: Random Number Generator] ---
+// Function to find empty cells and place a 2 or 4
+void addRandomNumber(GameData& game) {
+    int emptyCells[16][2];
+    int count = 0;
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (game.board[i][j] == 0) {
+                emptyCells[count][0] = i;
+                emptyCells[count][1] = j;
+                count++;
+            }
+        }
+    }
+
+    if (count > 0) {
+        int index = rand() % count;
+        int r = emptyCells[index][0];
+        int c = emptyCells[index][1];
+        // 90% chance for 2, 10% chance for 4
+        game.board[r][c] = (rand() % 10 < 9) ? 2 : 4;
+    }
+}
 
 // Function for upward movement
 void moveUp(GameData& game) {
@@ -26,7 +53,6 @@ void moveUp(GameData& game) {
             }
         }
     }
-    std::cout << "Action: Move Up" << std::endl;
 }
 
 // Function for downward movement
@@ -48,108 +74,96 @@ void moveDown(GameData& game) {
             }
         }
     }
-    std ::cout << "Action: Move Down" << std::endl;
 }
-void moveLeft(GameData& game)
-{
-    for (int i = 0; i < 4; i++)
-    {
+
+void moveLeft(GameData& game) {
+    for (int i = 0; i < 4; i++) {
         int temp[4] = { 0 };
         int index = 0;
 
-        // 1. ضغط (تشيل الأصفار)
-        for (int j = 0; j < 4; j++)
-        {
-            if (game.board[i][j] != 0)
-            {
+        // 1. Shift non-zero elements to the left
+        for (int j = 0; j < 4; j++) {
+            if (game.board[i][j] != 0) {
                 temp[index++] = game.board[i][j];
             }
         }
 
-        // 2. دمج
-        for (int j = 0; j < 3; j++)
-        {
-            if (temp[j] != 0 && temp[j] == temp[j + 1])
-            {
+        // 2. Merge identical adjacent tiles
+        for (int j = 0; j < 3; j++) {
+            if (temp[j] != 0 && temp[j] == temp[j + 1]) {
                 temp[j] *= 2;
                 game.score += temp[j];
                 temp[j + 1] = 0;
+                j++; // Prevent double merging in one move
             }
         }
 
-        // 3. ضغط تاني
+        // 3. Shift again after merging to fill gaps
         int newRow[4] = { 0 };
         index = 0;
-        for (int j = 0; j < 4; j++)
-        {
-            if (temp[j] != 0)
-            {
+        for (int j = 0; j < 4; j++) {
+            if (temp[j] != 0) {
                 newRow[index++] = temp[j];
             }
         }
 
-        // 4. رجوع للبورد
-        for (int j = 0; j < 4; j++)
-        {
+        // 4. Update the game board row
+        for (int j = 0; j < 4; j++) {
             game.board[i][j] = newRow[j];
         }
     }
 }
 
-void moveRight(GameData& game)
-{
-    for (int i = 0; i < 4; i++)
-    {
+void moveRight(GameData& game) {
+    for (int i = 0; i < 4; i++) {
         int temp[4] = { 0 };
         int index = 3;
 
-        // 1. ضغط من اليمين
-        for (int j = 3; j >= 0; j--)
-        {
-            if (game.board[i][j] != 0)
-            {
+        // 1. Shift non-zero elements to the right
+        for (int j = 3; j >= 0; j--) {
+            if (game.board[i][j] != 0) {
                 temp[index--] = game.board[i][j];
             }
         }
 
-        // 2. دمج
-        for (int j = 3; j > 0; j--)
-        {
-            if (temp[j] != 0 && temp[j] == temp[j - 1])
-            {
+        // 2. Merge identical adjacent tiles
+        for (int j = 3; j > 0; j--) {
+            if (temp[j] != 0 && temp[j] == temp[j - 1]) {
                 temp[j] *= 2;
                 game.score += temp[j];
                 temp[j - 1] = 0;
+                j--; // Prevent double merging
             }
         }
 
-        // 3. ضغط تاني
+        // 3. Re-shift to fill gaps after merging
         int newRow[4] = { 0 };
         index = 3;
-        for (int j = 3; j >= 0; j--)
-        {
-            if (temp[j] != 0)
-            {
+        for (int j = 3; j >= 0; j--) {
+            if (temp[j] != 0) {
                 newRow[index--] = temp[j];
             }
         }
 
-        // 4. رجوع للبورد
-        for (int j = 0; j < 4; j++)
-        {
+        // 4. Update the game board row
+        for (int j = 0; j < 4; j++) {
             game.board[i][j] = newRow[j];
         }
     }
 }
+
 int main() {
+    // Seed random number generator using current time
+    srand(static_cast<unsigned>(time(0)));
+
     // Creating the window
     sf::RenderWindow window(sf::VideoMode(600, 600), "2048 Game - Team Project");
 
-    // Creating game object
     GameData myGame;
 
-    // Initial value for testing
-    myGame.board[3][0] = 2;
+    // Initialize board with two random tiles
+    addRandomNumber(myGame);
+    addRandomNumber(myGame);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -157,58 +171,33 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            // arrow keys
             if (event.type == sf::Event::KeyPressed) {
-                // دعم الأسهم + الحروف (W, S, A, D)
-                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) moveUp(myGame);
-                else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) moveDown(myGame);
-                else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) moveLeft(myGame);
-                else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) moveRight(myGame);
+                bool moved = false;
 
-                // كود مسح الشاشة والطباعة (عشان تشوف الحركة)
-                system("cls");
-                std::cout << "Score: " << myGame.score << "\n\n";
-                for (int r = 0; r < 4; r++) {
-                    for (int c = 0; c < 4; c++) {
-                        std::cout << myGame.board[r][c] << "\t";
+                // Handle movement and flag if a move was made
+                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) { moveUp(myGame); moved = true; }
+                else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) { moveDown(myGame); moved = true; }
+                else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) { moveLeft(myGame); moved = true; }
+                else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) { moveRight(myGame); moved = true; }
+
+                if (moved) {
+                    addRandomNumber(myGame); // Add new tile after each move
+
+                    // Console visualization
+                    system("cls");
+                    std::cout << "Total Score: " << myGame.score << "\n\n";
+                    for (int r = 0; r < 4; r++) {
+                        for (int c = 0; c < 4; c++) {
+                            std::cout << myGame.board[r][c] << "\t";
+                        }
+                        std::cout << "\n\n";
                     }
-                    std::cout << "\n\n";
                 }
             }
-            if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) {
-                    moveUp(myGame);
-                    std::cout << "Direction: UP\n"; // هيطبع الاتجاه
-                }
-                else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) {
-                    moveDown(myGame);
-                    std::cout << "Direction: DOWN\n";
-                }
-                else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) {
-                    moveLeft(myGame);
-                    std::cout << "Direction: LEFT\n";
-                }
-                else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) {
-                    moveRight(myGame);
-                    std::cout << "Direction: RIGHT\n";
-                }
-
-                // طباعة المصفوفة فقط بدون كلمة Score
-                system("cls");
-                std::cout << "====================\n";
-                for (int r = 0; r < 4; r++) {
-                    for (int c = 0; c < 4; c++) {
-                        std::cout << myGame.board[r][c] << "\t";
-                    }
-                    std::cout << "\n\n";
-                }
-                std::cout << "====================\n";
-            }
-            
         }
 
         window.clear();
-        // Drawing logic will be added here later
+        // Drawing logic for SFML shapes will go here
         window.display();
     }
     return 0;
