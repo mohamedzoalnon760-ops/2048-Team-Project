@@ -159,19 +159,52 @@ int main() {
 
             // arrow keys
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Up) {
-                    moveUp(myGame);
-                }
-                else if (event.key.code == sf::Keyboard::Down) {
-                    moveDown(myGame);
-                }
-                else if (event.key.code == sf::Keyboard::Left) {
-                    moveLeft(myGame);
-                }
-                else if (event.key.code == sf::Keyboard::Right) {
-                    moveRight(myGame);
+                // دعم الأسهم + الحروف (W, S, A, D)
+                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) moveUp(myGame);
+                else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) moveDown(myGame);
+                else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) moveLeft(myGame);
+                else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) moveRight(myGame);
+
+                // كود مسح الشاشة والطباعة (عشان تشوف الحركة)
+                system("cls");
+                std::cout << "Score: " << myGame.score << "\n\n";
+                for (int r = 0; r < 4; r++) {
+                    for (int c = 0; c < 4; c++) {
+                        std::cout << myGame.board[r][c] << "\t";
+                    }
+                    std::cout << "\n\n";
                 }
             }
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) {
+                    moveUp(myGame);
+                    std::cout << "Direction: UP\n"; // هيطبع الاتجاه
+                }
+                else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) {
+                    moveDown(myGame);
+                    std::cout << "Direction: DOWN\n";
+                }
+                else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) {
+                    moveLeft(myGame);
+                    std::cout << "Direction: LEFT\n";
+                }
+                else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) {
+                    moveRight(myGame);
+                    std::cout << "Direction: RIGHT\n";
+                }
+
+                // طباعة المصفوفة فقط بدون كلمة Score
+                system("cls");
+                std::cout << "====================\n";
+                for (int r = 0; r < 4; r++) {
+                    for (int c = 0; c < 4; c++) {
+                        std::cout << myGame.board[r][c] << "\t";
+                    }
+                    std::cout << "\n\n";
+                }
+                std::cout << "====================\n";
+            }
+            
         }
 
         window.clear();
