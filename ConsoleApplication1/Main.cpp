@@ -236,7 +236,7 @@ int main() {
                 // Draw 
                 window.draw(tiles[r][c]);
 
-                // Update and draw text dynamically
+                // Update and draw text 
                 int val = myGame.board[r][c];
                 if (val != 0) {
                     tileText[r][c].setString(std::to_string(val));
