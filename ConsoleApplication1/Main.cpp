@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib> 
 #include <ctime>   
+#include <string> 
 
 // Struct to hold game data
 struct GameData {
@@ -9,7 +10,6 @@ struct GameData {
     int score = 0;
 };
 
-// --- [New Part: Random Number Generator] ---
 // Function to find empty cells and place a 2 or 4
 void addRandomNumber(GameData& game) {
     int emptyCells[16][2];
@@ -158,12 +158,44 @@ int main() {
 
     // Creating the window
     sf::RenderWindow window(sf::VideoMode(600, 600), "2048 Game - Team Project");
+    window.setFramerateLimit(60);
+
+    // Load the font
+    sf::Font font;
+    if (!font.loadFromFile("Clear-Sans.Bold.ttf")) {
+        std::cout << "Error loading font. Make sure the .ttf file is in the project folder.\n";
+        // To test without crashing if the font is missing right now, you can comment out the return -1
+        return -1;
+    }
 
     GameData myGame;
 
     // Initialize board with two random tiles
     addRandomNumber(myGame);
     addRandomNumber(myGame);
+
+    // Setup visual grid data
+    const float TILE_SIZE = 130.0f;
+    const float PADDING = 16.0f;
+
+    sf::RectangleShape tiles[4][4];
+    sf::Text tileText[4][4];
+
+    // Configure static properties of tiles and text
+    for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+            float xPos = PADDING + c * (TILE_SIZE + PADDING);
+            float yPos = PADDING + r * (TILE_SIZE + PADDING);
+
+            tiles[r][c].setSize({ TILE_SIZE, TILE_SIZE });
+            tiles[r][c].setPosition(xPos, yPos);
+            tiles[r][c].setFillColor(sf::Color(128, 0, 128)); // Purple
+
+            tileText[r][c].setFont(font);
+            tileText[r][c].setCharacterSize(45);
+            tileText[r][c].setFillColor(sf::Color::Black); // Black text
+        }
+    }
 
     while (window.isOpen()) {
         sf::Event event;
@@ -196,8 +228,32 @@ int main() {
             }
         }
 
-        window.clear();
-        // Drawing logic for SFML shapes will go here
+        // --- RENDER LOGIC ---
+        window.clear(sf::Color(187, 173, 160));
+
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                // Draw 
+                window.draw(tiles[r][c]);
+
+                // Update and draw text dynamically
+                int val = myGame.board[r][c];
+                if (val != 0) {
+                    tileText[r][c].setString(std::to_string(val));
+
+                    // Center the dynamic string inside the tile
+                    sf::FloatRect textRect = tileText[r][c].getLocalBounds();
+                    tileText[r][c].setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+                    tileText[r][c].setPosition(
+                        tiles[r][c].getPosition().x + TILE_SIZE / 2.0f,
+                        tiles[r][c].getPosition().y + TILE_SIZE / 2.0f
+                    );
+
+                    window.draw(tileText[r][c]);
+                }
+            }
+        }
+
         window.display();
     }
     return 0;
