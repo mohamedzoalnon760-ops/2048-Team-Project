@@ -126,7 +126,7 @@ void moveRight(GameData& game) {
             }
         }
 
-        // 2. Merge 
+        // 2. Merge the numbers here
         for (int j = 3; j > 0; j--) {
             if (temp[j] != 0 && temp[j] == temp[j - 1]) {
                 temp[j] *= 2;
