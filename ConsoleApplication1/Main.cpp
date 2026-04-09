@@ -9,6 +9,29 @@ struct GameData {
     int board[4][4] = { 0 };
     int score = 0;
 };
+// Logic functions for checking Win/Loss
+bool checkWin(const GameData& game) {
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            if (game.board[i][j] == 2048) return true;
+    return false;
+}
+
+bool checkGameOver(const GameData& game) {
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            if (game.board[i][j] == 0) return false;
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 3; j++)
+            if (game.board[i][j] == game.board[i][j + 1]) return false;
+
+    for (int j = 0; j < 4; j++)
+        for (int i = 0; i < 3; i++)
+            if (game.board[i][j] == game.board[i + 1][j]) return false;
+
+    return true;
+}
 
 // Function to find empty cells and place a 2 or 4
 void addRandomNumber(GameData& game) {
@@ -167,9 +190,19 @@ int main() {
         // To test without crashing if the font is missing right now, you can comment out the return -1
         return -1;
     }
-
+    // Setup Score Text
+    sf::Text scoreDisplay;
+    scoreDisplay.setFont(font);
+    scoreDisplay.setCharacterSize(35);
+    scoreDisplay.setFillColor(sf::Color::White); 
+    scoreDisplay.setPosition(20.0f, 10.0f);  
     GameData myGame;
-
+    sf::Text gameOverMsg;
+    gameOverMsg.setFont(font);
+    gameOverMsg.setCharacterSize(60);
+    gameOverMsg.setFillColor(sf::Color::Red);
+    gameOverMsg.setStyle(sf::Text::Bold);
+    gameOverMsg.setPosition(100, 250); // 
     // Initialize board with two random tiles
     addRandomNumber(myGame);
     addRandomNumber(myGame);
@@ -216,6 +249,19 @@ int main() {
                     addRandomNumber(myGame); // Add new tile after each move
 
                     // Console visualization
+                    // 1. Update the score display text
+                    scoreDisplay.setString("Score: " + std::to_string(myGame.score));
+                    // -- - Check Game Logic Status-- -
+
+                        // 1. Check if the player has reached 2048
+                    if (checkWin(myGame)) {
+                        std::cout << "WINNER! You reached 2048!" << std::endl;
+                    }
+
+                    // 2. Check if the board is full and no more merges possible
+                    if (checkGameOver(myGame)) {
+                        std::cout << "GAME OVER! No more moves." << std::endl;
+                    }
                     system("cls");
                     std::cout << "Total Score: " << myGame.score << "\n\n";
                     for (int r = 0; r < 4; r++) {
@@ -230,6 +276,10 @@ int main() {
 
         // --- RENDER LOGIC ---
         window.clear(sf::Color(187, 173, 160));
+        // 2. Draw the Score (Put it here OUTSIDE the loops)
+        window.draw(scoreDisplay);
+
+        // 3. Draw the grid (The loops)
 
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
@@ -250,11 +300,20 @@ int main() {
                     );
 
                     window.draw(tileText[r][c]);
+
                 }
             }
+
         }
 
-        window.display();
+
+        window.draw(scoreDisplay);
+        if (checkGameOver(myGame)) {
+            window.draw(gameOverMsg);
+        }
+
+            window.display();
     }
+    
     return 0;
 }
