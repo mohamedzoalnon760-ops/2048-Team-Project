@@ -249,17 +249,20 @@ int main() {
                     addRandomNumber(myGame); // Add new tile after each move
 
                     // Console visualization
-                    // 1. Update the score display text
+                 // 1. Update the score text for the graphic screen
                     scoreDisplay.setString("Score: " + std::to_string(myGame.score));
-                    // -- - Check Game Logic Status-- -
 
-                        // 1. Check if the player has reached 2048
+                    // 2. Check for winning condition (reaching 2048)
                     if (checkWin(myGame)) {
+                        gameOverMsg.setString("WINNER! 2048");
+                        gameOverMsg.setFillColor(sf::Color::Yellow);
                         std::cout << "WINNER! You reached 2048!" << std::endl;
                     }
 
-                    // 2. Check if the board is full and no more merges possible
+                    // 3. Check for game over (no more moves)
                     if (checkGameOver(myGame)) {
+                        gameOverMsg.setString("GAME OVER!");
+                        gameOverMsg.setFillColor(sf::Color::Red);
                         std::cout << "GAME OVER! No more moves." << std::endl;
                     }
                     system("cls");
