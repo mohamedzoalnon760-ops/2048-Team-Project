@@ -252,15 +252,14 @@ int main() {
                  // 1. Update the score text for the graphic screen
                     scoreDisplay.setString("Score: " + std::to_string(myGame.score));
 
-                    // 2. Check for winning condition (reaching 2048)
+                    // 1. Always check for WIN first
                     if (checkWin(myGame)) {
                         gameOverMsg.setString("WINNER! 2048");
                         gameOverMsg.setFillColor(sf::Color::Yellow);
                         std::cout << "WINNER! You reached 2048!" << std::endl;
                     }
-
-                    // 3. Check for game over (no more moves)
-                    if (checkGameOver(myGame)) {
+                    // 2. ONLY check for Game Over if the player hasn't won yet
+                    else if (checkGameOver(myGame)) {
                         gameOverMsg.setString("GAME OVER!");
                         gameOverMsg.setFillColor(sf::Color::Red);
                         std::cout << "GAME OVER! No more moves." << std::endl;
