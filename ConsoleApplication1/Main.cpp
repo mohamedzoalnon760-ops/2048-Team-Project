@@ -2,20 +2,45 @@
 #include <iostream>
 #include <cstdlib> 
 #include <ctime>   
-#include <string> 
+#include <string>  
+#include <map>
 
-// Struct to hold game data
+
 struct GameData {
     int board[4][4] = { 0 };
     int score = 0;
 };
-// Logic functions for checking Win/Loss
+
+//  لون المربع بناءً على قيمته
+sf::Color getTileColor(int value) {
+    switch (value) {
+    case 2:    return sf::Color(238, 228, 218);
+    case 4:    return sf::Color(237, 224, 200);
+    case 8:    return sf::Color(242, 177, 121);
+    case 16:   return sf::Color(245, 149, 99);
+    case 32:   return sf::Color(246, 124, 95);
+    case 64:   return sf::Color(246, 94, 59);
+    case 128:  return sf::Color(237, 207, 114);
+    case 256:  return sf::Color(237, 204, 97);
+    case 512:  return sf::Color(237, 200, 80);
+    case 1024: return sf::Color(237, 197, 63);
+    case 2048: return sf::Color(237, 194, 46);
+    default:   return sf::Color(205, 193, 180); // لون المربعات الفارغة
+    }
+}
+
+sf::Color getTextColor(int value) {
+    return (value <= 4) ? sf::Color(119, 110, 101) : sf::Color::White;
+}
+
+// التحقق من الفوز
 bool checkWin(const GameData& game) {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
             if (game.board[i][j] == 2048) return true;
     return false;
 }
+
 
 bool checkGameOver(const GameData& game) {
     for (int i = 0; i < 4; i++)
@@ -33,11 +58,10 @@ bool checkGameOver(const GameData& game) {
     return true;
 }
 
-// Function to find empty cells and place a 2 or 4
+
 void addRandomNumber(GameData& game) {
     int emptyCells[16][2];
     int count = 0;
-
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (game.board[i][j] == 0) {
@@ -47,17 +71,15 @@ void addRandomNumber(GameData& game) {
             }
         }
     }
-
     if (count > 0) {
         int index = rand() % count;
         int r = emptyCells[index][0];
         int c = emptyCells[index][1];
-        // 90% chance for 2, 10% chance for 4
         game.board[r][c] = (rand() % 10 < 9) ? 2 : 4;
     }
 }
 
-// Function for upward movement
+// دوال الحركة
 void moveUp(GameData& game) {
     for (int j = 0; j < 4; j++) {
         for (int i = 1; i < 4; i++) {
@@ -78,7 +100,6 @@ void moveUp(GameData& game) {
     }
 }
 
-// Function for downward movement
 void moveDown(GameData& game) {
     for (int j = 0; j < 4; j++) {
         for (int i = 2; i >= 0; i--) {
@@ -101,221 +122,120 @@ void moveDown(GameData& game) {
 
 void moveLeft(GameData& game) {
     for (int i = 0; i < 4; i++) {
-        int temp[4] = { 0 };
-        int index = 0;
-
-        // 1. Shift non-zero elements to the left
-        for (int j = 0; j < 4; j++) {
-            if (game.board[i][j] != 0) {
-                temp[index++] = game.board[i][j];
-            }
-        }
-
-        // 2. Merge identical adjacent tiles
+        int temp[4] = { 0 }, index = 0;
+        for (int j = 0; j < 4; j++) if (game.board[i][j] != 0) temp[index++] = game.board[i][j];
         for (int j = 0; j < 3; j++) {
             if (temp[j] != 0 && temp[j] == temp[j + 1]) {
-                temp[j] *= 2;
-                game.score += temp[j];
-                temp[j + 1] = 0;
-                j++; // Prevent double merging in one move
+                temp[j] *= 2; game.score += temp[j]; temp[j + 1] = 0; j++;
             }
         }
-
-        // 3. Shift again after merging to fill gaps
-        int newRow[4] = { 0 };
-        index = 0;
-        for (int j = 0; j < 4; j++) {
-            if (temp[j] != 0) {
-                newRow[index++] = temp[j];
-            }
-        }
-
-        // 4. Update the game board row
-        for (int j = 0; j < 4; j++) {
-            game.board[i][j] = newRow[j];
-        }
+        int newRow[4] = { 0 }; index = 0;
+        for (int j = 0; j < 4; j++) if (temp[j] != 0) newRow[index++] = temp[j];
+        for (int j = 0; j < 4; j++) game.board[i][j] = newRow[j];
     }
 }
 
 void moveRight(GameData& game) {
     for (int i = 0; i < 4; i++) {
-        int temp[4] = { 0 };
-        int index = 3;
-
-        // 1. Shift non-zero elements to the right
-        for (int j = 3; j >= 0; j--) {
-            if (game.board[i][j] != 0) {
-                temp[index--] = game.board[i][j];
-            }
-        }
-
-        // 2. Merge the numbers here
+        int temp[4] = { 0 }, index = 3;
+        for (int j = 3; j >= 0; j--) if (game.board[i][j] != 0) temp[index--] = game.board[i][j];
         for (int j = 3; j > 0; j--) {
             if (temp[j] != 0 && temp[j] == temp[j - 1]) {
-                temp[j] *= 2;
-                game.score += temp[j];
-                temp[j - 1] = 0;
-                j--; // Prevent double merging
+                temp[j] *= 2; game.score += temp[j]; temp[j - 1] = 0; j--;
             }
         }
-
-        // 3. Re-shift to fill gaps after merging
-        int newRow[4] = { 0 };
-        index = 3;
-        for (int j = 3; j >= 0; j--) {
-            if (temp[j] != 0) {
-                newRow[index--] = temp[j];
-            }
-        }
-
-        // 4. Update the game board row
-        for (int j = 0; j < 4; j++) {
-            game.board[i][j] = newRow[j];
-        }
+        int newRow[4] = { 0 }; index = 3;
+        for (int j = 3; j >= 0; j--) if (temp[j] != 0) newRow[index--] = temp[j];
+        for (int j = 0; j < 4; j++) game.board[i][j] = newRow[j];
     }
 }
 
 int main() {
-    // Seed random number generator using current time
     srand(static_cast<unsigned>(time(0)));
-
-    // Creating the window
-    sf::RenderWindow window(sf::VideoMode(600, 600), "2048 Game - Team Project");
+    sf::RenderWindow window(sf::VideoMode(600, 720), "2048 Game - Full Project");
     window.setFramerateLimit(60);
 
-    // Load the font
     sf::Font font;
     if (!font.loadFromFile("Clear-Sans.Bold.ttf")) {
-        std::cout << "Error loading font. Make sure the .ttf file is in the project folder.\n";
-        // To test without crashing if the font is missing right now, you can comment out the return -1
+        std::cout << "Font not found! Place 'Clear-Sans.Bold.ttf' in the folder." << std::endl;
         return -1;
     }
-    // Setup Score Text
+
+    GameData myGame;
+    addRandomNumber(myGame);
+    addRandomNumber(myGame);
+
     sf::Text scoreDisplay;
     scoreDisplay.setFont(font);
-    scoreDisplay.setCharacterSize(35);
-    scoreDisplay.setFillColor(sf::Color::White); 
-    scoreDisplay.setPosition(20.0f, 10.0f);  
-    GameData myGame;
-    sf::Text gameOverMsg;
-    gameOverMsg.setFont(font);
-    gameOverMsg.setCharacterSize(60);
-    gameOverMsg.setFillColor(sf::Color::Red);
-    gameOverMsg.setStyle(sf::Text::Bold);
-    gameOverMsg.setPosition(100, 250); // 
-    // Initialize board with two random tiles
-    addRandomNumber(myGame);
-    addRandomNumber(myGame);
+    scoreDisplay.setCharacterSize(30);
+    scoreDisplay.setFillColor(sf::Color(119, 110, 101));
+    scoreDisplay.setPosition(20, 630);
 
-    // Setup visual grid data
     const float TILE_SIZE = 130.0f;
     const float PADDING = 16.0f;
-
-    sf::RectangleShape tiles[4][4];
-    sf::Text tileText[4][4];
-
-    // Configure static properties of tiles and text
-    for (int r = 0; r < 4; r++) {
-        for (int c = 0; c < 4; c++) {
-            float xPos = PADDING + c * (TILE_SIZE + PADDING);
-            float yPos = PADDING + r * (TILE_SIZE + PADDING);
-
-            tiles[r][c].setSize({ TILE_SIZE, TILE_SIZE });
-            tiles[r][c].setPosition(xPos, yPos);
-            tiles[r][c].setFillColor(sf::Color(128, 0, 128)); // Purple
-
-            tileText[r][c].setFont(font);
-            tileText[r][c].setCharacterSize(45);
-            tileText[r][c].setFillColor(sf::Color::Black); // Black text
-        }
-    }
+    sf::RectangleShape tileShape;
+    sf::Text tileText;
 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
-
+            if (event.type == sf::Event::Closed) window.close();
             if (event.type == sf::Event::KeyPressed) {
                 bool moved = false;
-
-                // Handle movement and flag if a move was made
                 if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) { moveUp(myGame); moved = true; }
                 else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) { moveDown(myGame); moved = true; }
                 else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) { moveLeft(myGame); moved = true; }
                 else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) { moveRight(myGame); moved = true; }
 
-                if (moved) {
-                    addRandomNumber(myGame); // Add new tile after each move
-
-                    // Console visualization
-                 // 1. Update the score text for the graphic screen
-                    scoreDisplay.setString("Score: " + std::to_string(myGame.score));
-
-                    // 1. Always check for WIN first
-                    if (checkWin(myGame)) {
-                        gameOverMsg.setString("WINNER! 2048");
-                        gameOverMsg.setFillColor(sf::Color::Yellow);
-                        std::cout << "WINNER! You reached 2048!" << std::endl;
-                    }
-                    // 2. ONLY check for Game Over if the player hasn't won yet
-                    else if (checkGameOver(myGame)) {
-                        gameOverMsg.setString("GAME OVER!");
-                        gameOverMsg.setFillColor(sf::Color::Red);
-                        std::cout << "GAME OVER! No more moves." << std::endl;
-                    }
-                    system("cls");
-                    std::cout << "Total Score: " << myGame.score << "\n\n";
-                    for (int r = 0; r < 4; r++) {
-                        for (int c = 0; c < 4; c++) {
-                            std::cout << myGame.board[r][c] << "\t";
-                        }
-                        std::cout << "\n\n";
-                    }
-                }
+                if (moved) addRandomNumber(myGame);
             }
         }
 
-        // --- RENDER LOGIC ---
         window.clear(sf::Color(187, 173, 160));
-        // 2. Draw the Score (Put it here OUTSIDE the loops)
+        scoreDisplay.setString("Total Score: " + std::to_string(myGame.score));
         window.draw(scoreDisplay);
-
-        // 3. Draw the grid (The loops)
 
         for (int r = 0; r < 4; r++) {
             for (int c = 0; c < 4; c++) {
-                // Draw 
-                window.draw(tiles[r][c]);
-
-                // Update and draw text 
                 int val = myGame.board[r][c];
+                float xPos = PADDING + c * (TILE_SIZE + PADDING);
+                float yPos = PADDING + r * (TILE_SIZE + PADDING);
+
+                tileShape.setSize({ TILE_SIZE, TILE_SIZE });
+                tileShape.setPosition(xPos, yPos);
+                tileShape.setFillColor(getTileColor(val));
+                window.draw(tileShape);
+
                 if (val != 0) {
-                    tileText[r][c].setString(std::to_string(val));
+                    tileText.setFont(font);
+                    tileText.setString(std::to_string(val));
+                    tileText.setCharacterSize(val < 100 ? 45 : (val < 1000 ? 35 : 28));
+                    tileText.setFillColor(getTextColor(val));
 
-                    // Center the dynamic string inside the tile
-                    sf::FloatRect textRect = tileText[r][c].getLocalBounds();
-                    tileText[r][c].setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-                    tileText[r][c].setPosition(
-                        tiles[r][c].getPosition().x + TILE_SIZE / 2.0f,
-                        tiles[r][c].getPosition().y + TILE_SIZE / 2.0f
-                    );
-
-                    window.draw(tileText[r][c]);
-
+                    sf::FloatRect textRect = tileText.getLocalBounds();
+                    tileText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+                    tileText.setPosition(xPos + TILE_SIZE / 2.0f, yPos + TILE_SIZE / 2.0f);
+                    window.draw(tileText);
                 }
             }
-
         }
 
-
-        window.draw(scoreDisplay);
         if (checkGameOver(myGame)) {
-            window.draw(gameOverMsg);
+            sf::RectangleShape overlay(sf::Vector2f(600, 720));
+            overlay.setFillColor(sf::Color(255, 255, 255, 120));
+            window.draw(overlay);
+
+            sf::Text loseText;
+            loseText.setFont(font);
+            loseText.setString("GAME OVER!");
+            loseText.setCharacterSize(60);
+            loseText.setFillColor(sf::Color::Red);
+            loseText.setOrigin(loseText.getLocalBounds().width / 2.0f, loseText.getLocalBounds().height / 2.0f);
+            loseText.setPosition(300, 300);
+            window.draw(loseText);
         }
 
-            window.display();
+        window.display();
     }
-    
     return 0;
 }
